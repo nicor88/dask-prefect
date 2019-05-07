@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  scheduler:
+    image: dask-scheduler
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: scheduler
+    environment:
+      - STAGE=dev
+    networks:
+      - dask
+
+  worker-1:
+    image: dask-worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - scheduler
+    command: worker
+    environment:
+      - STAGE=dev
+      - DASK_SCHEDULER_HOST=scheduler
+    networks:
+      - dask
+
+  worker-2:
+    image: dask-worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - scheduler
+    command: worker
+    environment:
+      - STAGE=dev
+      - DASK_SCHEDULER_HOST=scheduler
+    networks:
+      - dask
+
+  example-workflow:
+    image: workflow-example
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - scheduler
+    command: example
+    environment:
+      - STAGE=dev
+      - DASK_SCHEDULER_HOST=scheduler
+    volumes:
+    - ${PWD}/workflows/:/app/workflows
+    networks:
+      - dask
+
+networks:
+  dask:
